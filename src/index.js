@@ -1,36 +1,19 @@
 import express from "express";
-import storage from "./store";
+const app = express(); // instanciranje aplikacije
+const port = 3000; // port na kojem će web server slušati
 
-const app = express();
-const port = 3000;
+let today = new Date();
 
-app.use(express.json());
-
-app.get("/", (req, res) => {
-  let suma = 1 + 3;
-  res.send("Hello za browser");
-  console.log("Hello konzola");
-});
-app.post("/", (req, res) => {
-  console.log("Post metoda");
-  res.json({ status: "OK" });
-});
-
-//Ispis svih dostupnih knjiga (PRETRAGA)
-app.get("/knjiznica", (req, res) => {
-  res.json(storage.knjige);
-});
-//Dodavanje nove knjige (KNJIŽNIČAR)
-app.post("/knjiznica", (req, res) => {
-  let doc = req.body;
-  storage.knjige.push(doc);
-  res.json({ status: "ok" });
-});
-//pretraga specificne knjige
-app.get("/knjiznica/knjiga/:naziv", (req, res) => {
-  let naziv = req.params.naziv;
-  console.log("Pretraga knjige: ", naziv);
-  res.json(storage.knjige.filter((x) => x.naziv == naziv));
-});
-
-app.listen(port, () => console.log(`Slušam na portu ${port}`));
+let date =
+  today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
+let time =
+  today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+app.get("/", (req, res) =>
+  res.send(
+    "Prva adresa se zove datum i nalazi se na localhost:3000/date, a druga se zove prognoza i nalazi se na localhost:3000/prognoza"
+  )
+);
+let Zajedno = date + time;
+app.get("/date", (req, res) => res.send("Ispis datuma: ", Zajedno));
+app.get("/prognoza", (req, res) => res.send("Sunčano vrijeme"));
+app.listen(port, () => console.log(`Slušam na portu ${port}!`));
