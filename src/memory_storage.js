@@ -1,5 +1,5 @@
 let storage = {
-  knjige: [
+  knjige_memory: [
     {
       Autor: "John Ronald Reuel Tolkien",
       Naziv: "Gospodar prstenova - prstenova družina",
