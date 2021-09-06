@@ -11,17 +11,19 @@ let db = null;
 
 export default () => {
   return new Promise((resolve, reject) => {
+    // ako smo inicijalizirali bazu i klijent je još uvijek spojen
     if (db && client.isConnected()) {
       resolve(db);
+    } else {
+      client.connect((err) => {
+        if (err) {
+          reject("Spajanje na bazu nije uspjelo:" + err);
+        } else {
+          console.log("Database connected successfully!");
+          db = client.db("Library");
+          resolve(db);
+        }
+      });
     }
-    client.connect((err) => {
-      if (err) {
-        reject("Došlo je do greške prilikom spajanja " + err);
-      } else {
-        console.log("Uspješno spajanje na bazu");
-        let db = client.db("Library");
-        resolve(db);
-      }
-    });
   });
 };
