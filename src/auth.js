@@ -1,6 +1,7 @@
 import mongo from "mongodb";
 import connect from "./db";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 (async () => {
   let db = await connect();
@@ -26,5 +27,42 @@ export default {
       }
     }
     await db.collection("users").insertOne(doc);
+  },
+
+  async autheticateUser(username, password) {
+    let db = await connect();
+    let user = await db.collection("users").findOne({ username: username });
+    if (
+      user &&
+      user.password &&
+      (await bcrypt.compare(password, user.password))
+    ) {
+      delete user.password;
+      let token = jwt.sign(user, "process.env.TAJNA", {
+        algorithm: "HS512",
+        expiresIn: "1 week",
+      });
+      return {
+        token,
+        username: user.username,
+      };
+    } else {
+      throw new Error("Cannot authenticate");
+    }
+  },
+  verify(req, res, next) {
+    try {
+      let authorization = req.headers.authorization.split(" ");
+      let type = authorization[0];
+      let token = authorization[1];
+      if (type !== "Bearer") {
+        return res.status(401).send();
+      } else {
+        req.jwt = jwt.verify(token, "process.env.TAJNA");
+        return next();
+      }
+    } catch (e) {
+      return res.status(401).send();
+    }
   },
 };
