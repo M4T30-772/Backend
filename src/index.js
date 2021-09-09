@@ -1,10 +1,11 @@
 import dotenv from "dotenv";
 dotenv.config();
-import express from "express";
+import express, { json } from "express";
 import storage from "./memory_storage.js";
 import cors from "cors";
 import connect from "./db.js";
 import auth from "./auth";
+import { verify } from "jsonwebtoken";
 const app = express(); // instanciranje aplikacije
 const port = 3000; // port na kojem će web server slušati
 app.use(cors());
@@ -20,10 +21,62 @@ app.get("/knjige", async (req, res) => {
     res.json({ status: "fail" });
   }
 });
-app.get("/knjige1", (req, res) => {
-  let knjige = storage.knjige_memory;
-  res.json(knjige);
+app.get("/posudi", async (req, res) => {
+  let db = await connect();
+  let cursor = await db.collection("posudi").find();
+  let result = await cursor.toArray();
+  res.json(result);
+  if (result && result.insertedCount == 1) {
+    res.json(result.ops[0]);
+  } else {
+    res.json({ status: "fail" });
+  }
 });
+app.post("/posudi", async (req, res) => {
+  let data = req.body;
+  delete data._id;
+  let db = await connect();
+  let result = await db.collection("posudi").insertOne(data);
+
+  if (result && result.insertedCount == 1) {
+    res.json(result.ops[0]);
+  } else {
+    res.json({
+      status: "fail",
+    });
+  }
+
+  res.json(data);
+});
+
+app.get("/dashboard", async (req, res) => {
+  let db = await connect();
+  let cursor = await db.collection("dashboard").find();
+  let result = await cursor.toArray();
+  res.json(result);
+  if (result && result.insertedCount == 1) {
+    res.json(result.ops[0]);
+  } else {
+    res.json({ status: "fail" });
+  }
+});
+app.post("/dashboard", async (req, res) => {
+  let data = req.body;
+  delete data._id;
+  let db = await connect();
+  let result = await db.collection("dashboard").insertOne(data);
+
+  if (result && result.insertedCount == 1) {
+    res.json(result.ops[0]);
+  } else {
+    res.json({
+      status: "fail",
+    });
+  }
+
+  res.json(data);
+});
+
 app.post("/knjige", async (req, res) => {
   let data = req.body;
   delete data._id;
@@ -62,7 +115,7 @@ app.post("/users", async (req, res) => {
   }
   res.json({ id: id });
 });
-app.get("/tajna", [auth.verify], (req, res) => {
+app.get("/tajna", (req, res) => {
   res.json({ message: "ovo je tajna" + req.jwt.username });
 });
 app.post("/auth", async (req, res) => {
